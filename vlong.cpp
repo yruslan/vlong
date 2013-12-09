@@ -48,6 +48,13 @@
 
 #include "vlong.h"
 
+// Simulate static asserts (produces "negative subscript" error if fails
+// Signed and unsigned digits and words must be the same size
+typedef int static_assert_acceptable_dig_size1 [sizeof(sdig_t)==sizeof(udig_t) ? 1 : -1];
+typedef int static_assert_acceptable_dig_size2 [sizeof(swrd_t)==sizeof(swrd_t) ? 1 : -1];
+// Double digit (word) type must 2 times bigges then single digit type
+typedef int static_assert_acceptable_dig_size3 [sizeof(uwrd_t)==sizeof(udig_t)*2 ? 1 : -1];
+
 #ifdef _MSC_VER
 #pragma warning( disable : 4996 )
 #endif 
