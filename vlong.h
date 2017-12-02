@@ -44,6 +44,8 @@
 #ifndef _VLONG_H_INCLUDED_
 #define _VLONG_H_INCLUDED_
 
+#include <algorithm>
+
 //Configuration
 //Maximum digits in a number. Comment out if unrestricted.
 #define VLONG_MAX_DIGITS           1024
@@ -159,7 +161,7 @@ public:
 	// Swap contents of two vlong objects
 	// Faster then copying because it doesn't require
 	// memory copy operation. Just swaps pointers
-    int Swap(vlong &v);
+    void swap(vlong &v);
 
     //***************** Import a number from various sources *******************************
     // Convert from arbitrary string of 2<=radix<=16
@@ -183,7 +185,7 @@ public:
     int ToStringBuf(char *pBuf, size_t &nBufLen, int nRadix = 16, const char *szCustomChars = NULL) const;
 
     // Convert to temporary readable string (useful in printf) 2<=radix<=16
-    const char *ToString(int radix = 16);
+    const char *ToString(int radix = 16) const;
 
     // Convert to BASE64-encoded string and save to automatically generated internal temporary buffer
     const char *ToBase64();
@@ -357,18 +359,18 @@ public:
     void operator /= (sdig_t v) {Div(*this,v,NULL);}
     void operator /= (const vlong &v) {Div(*this,v,NULL);}
 
-    vlong operator + (sdig_t b) {vlong t;t.Add(*this,b);return t;}
-    vlong operator + (const vlong &b) {vlong t;t.Add(*this,b); return t;}
-    vlong operator - (sdig_t b){vlong t;t.Sub(*this,b);return t;}
-    vlong operator - (const vlong &b){vlong t;t.Sub(*this,b);return t;}
-    vlong operator << (int c) {vlong t;t.ShiftLeft(*this,c);return t;}
-    vlong operator >> (int c) {vlong t;t.ShiftRight(*this,c);return t;}
-    sdig_t operator % (sdig_t b) {return ModDig(*this,b);}
-    vlong operator % (const vlong &b) {vlong t;t.Mod(*this,b); return t;}
-    vlong operator * (sdig_t b) {vlong t;t.Mul(*this,b);return t;}
-    vlong operator * (const vlong &b) {vlong t;t.Mul(*this,b); return t;}
-    vlong operator / (sdig_t b) {vlong t;t.Div(*this,b,NULL);return t;}
-    vlong operator / (const vlong &b) {vlong t;t.Div(*this,b,NULL); return t;}
+    const vlong operator + (sdig_t b) const {vlong t;t.Add(*this,b);return t;}
+    const vlong operator + (const vlong &b) const {vlong t;t.Add(*this,b); return t;}
+    const vlong operator - (sdig_t b) const {vlong t;t.Sub(*this,b);return t;}
+    const vlong operator - (const vlong &b) const {vlong t;t.Sub(*this,b);return t;}
+    const vlong operator << (int c) const {vlong t;t.ShiftLeft(*this,c);return t;}
+    const vlong operator >> (int c) const {vlong t;t.ShiftRight(*this,c);return t;}
+    const sdig_t operator % (sdig_t b) const {return ModDig(*this,b);}
+    const vlong operator % (const vlong &b) const {vlong t;t.Mod(*this,b); return t;}
+    const vlong operator * (sdig_t b) const {vlong t;t.Mul(*this,b);return t;}
+    const vlong operator * (const vlong &b) const {vlong t;t.Mul(*this,b); return t;}
+    const vlong operator / (sdig_t b) const {vlong t;t.Div(*this,b,NULL);return t;}
+    const vlong operator / (const vlong &b) const {vlong t;t.Div(*this,b,NULL); return t;}
 
 private:
     //Memory Management
@@ -443,9 +445,18 @@ private:
     size_t nu;    //Number of used digits
 
     //Temporary attributes
-    char *tmp;    //For string output
-    size_t ntmp;  //Chars in the tmp string
+    mutable char *tmp;    //For string output
+    mutable size_t ntmp;  //Chars in the tmp string
 };
+
+namespace std
+{
+	template<>
+	inline void swap(vlong &a, vlong &b)
+	{
+		a.swap(b);
+	}
+}
 
 #endif //_VLONG_H_INCLUDED_
 

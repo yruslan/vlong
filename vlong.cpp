@@ -325,7 +325,7 @@ int vlong::SetValue(sdig_t v)
 // Swap contents of two vlong objects
 // Faster then copying because it doesn't require
 // memory copy operation. Just swaps pointers
-int vlong::Swap(vlong &v)
+void vlong::swap(vlong &v)
 {
     char sn;
     udig_t *p;
@@ -339,8 +339,6 @@ int vlong::Swap(vlong &v)
 
     pt = tmp;      tmp = v.tmp;   v.tmp = pt;
     x  = ntmp;     ntmp= v.ntmp;  v.ntmp= x;
-    
-    return VLONG_SUCCESS;
 }
 
 // Convert from a NUUL-terminated string of 2<=radix<=16
@@ -472,7 +470,7 @@ int vlong::FromBinary(const char *szNumber, size_t buflen)
 }
 
 // Convert to temporary readable string (useful in printf) 2<=radix<=16
-const char *vlong::ToString(int radix /*= 16*/)
+const char *vlong::ToString(int radix /*= 16*/) const
 {
     if (radix<2 || radix>16) return NULL;
     size_t b = BiD;
@@ -2158,8 +2156,8 @@ int vlong::prvDivBig(const vlong &a, const vlong &b, vlong *q2/*=NULL*/,  vlong 
     CHECK( q.Grow(a.nu+2) );
     q.nu = a.nu+2;
 
-    CHECK( t1.Grow(a.nu+1) );
-    CHECK( t2.Grow(a.nu+1) );
+    CHECK( t1.Grow(a.nu+2) );
+    CHECK( t2.Grow(a.nu+2) );
     CHECK( x.SetValue(a) );
     CHECK( y.SetValue(b) );
 
@@ -2263,7 +2261,7 @@ int vlong::prvDivBig(const vlong &a, const vlong &b, vlong *q2/*=NULL*/,  vlong 
     if (r != NULL)
     {
         CHECK( x.ShiftRight(x, norm) );
-        CHECK( r->Swap(x) );
+        r->swap(x);
         r->s = a.s;
     }
     return ret;
@@ -2477,7 +2475,7 @@ int vlong::Root(const vlong &a, udig_t n)
     }
 
     // set the result
-    CHECK( Swap(t1) );
+    swap(t1);
 
     // set the sign of the result
     s = a.s;
@@ -2499,7 +2497,7 @@ int vlong::InvMod(const vlong &a, const vlong &n)
 
     if (gcd.nu == 1 && gcd.d[0]==1)
     {
-        CHECK( Swap(Y1) );
+        swap(Y1);
     }
     else
         return VLONG_ERR_NO_INVERSE;
@@ -2988,7 +2986,7 @@ int vlong::prvPowModBarrett(const vlong &a, const vlong &e, const vlong &n, int 
         }
     }
 
-    CHECK( Swap(res) );
+    swap(res);
     return ret;
 }
 
@@ -3471,13 +3469,13 @@ int vlong::GCDExt (const vlong &a, const vlong &b, vlong *pY1, vlong *pY2)
     }
     if (swap)
     {
-        if (pY1 != NULL) CHECK( pY1->Swap(y1) );
-        if (pY2 != NULL) CHECK( pY2->Swap(y2) );
+        if (pY1 != NULL) pY1->swap(y1);
+        if (pY2 != NULL) pY2->swap(y2);
     }
     else
     {
-        if (pY1 != NULL) CHECK( pY1->Swap(y2) );
-        if (pY2 != NULL) CHECK( pY2->Swap(y1) );
+        if (pY1 != NULL) pY1->swap(y2);
+        if (pY2 != NULL) pY2->swap(y1);
     }
 
     return ret;
@@ -3562,8 +3560,8 @@ int vlong::GCDExtBin (const vlong &a, const vlong &b, vlong *pY1, vlong *pY2)
     }
     while(tu.nu != 0);
 
-    if (pY1!=NULL) { CHECK( pY1->Swap(v1) ); }
-    if (pY2!=NULL) { CHECK( pY2->Swap(v2) ); }
+    if (pY1!=NULL) pY1->swap(v1);
+    if (pY2!=NULL) pY2->swap(v2);
     CHECK( SetValue(tv) );
 
     if (tg>0) CHECK( ShiftLeft(*this,tg) );
