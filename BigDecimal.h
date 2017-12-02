@@ -47,6 +47,7 @@ public:
 	BigDecimal(double d, int scale);
 
 	void fromString(const char *szNumber);
+	void fromDouble(double d);
 	void fromDouble(double d, int scale);
 
 	std::string toString() const;
@@ -87,7 +88,7 @@ public:
 	BigDecimal operator * (const BigDecimal &rhs) const { BigDecimal t(*this); t.mul(rhs); return t; }
 	BigDecimal operator / (double ths) const { BigDecimal t(*this); t.div(BigDecimal(ths, scale_)); return t; }
 	BigDecimal operator / (const BigDecimal &rhs) const { BigDecimal t(*this); t.div(rhs); return t; }
-		
+
 private:
 	void add(const BigDecimal &rhs);
 	void sub(const BigDecimal &rhs);

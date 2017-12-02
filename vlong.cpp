@@ -1,10 +1,10 @@
 /* vlong, multiple-precision integer cross-platform C++ Class
  *
- * Supports all essential numeric theory algorithms to implement public key cryptography procedures. 
+ * Supports all essential numeric theory algorithms to implement public key cryptography procedures.
  * Implementation is in plain C++ and thus architecture and endian-portable.
  *
- * Anyone can use it freely for any purpose. There is 
- * absolutely no guarantee it works or fits a particular purpose (see below). 
+ * Anyone can use it freely for any purpose. There is
+ * absolutely no guarantee it works or fits a particular purpose (see below).
  *
  * This class has been made by Ruslan Yushchenko (yruslan@gmail.com)
  *
@@ -21,7 +21,7 @@
  * distribute this software, either in source code form or as a compiled
  * binary, for any purpose, commercial or non-commercial, and by any
  * means.
- * 
+ *
  * In jurisdictions that recognize copyright laws, the author or authors
  * of this software dedicate any and all copyright interest in the
  * software to the public domain. We make this dedication for the benefit
@@ -29,7 +29,7 @@
  * successors. We intend this dedication to be an overt act of
  * relinquishment in perpetuity of all present and future rights to this
  * software under copyright law.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -37,7 +37,7 @@
  * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
- * 
+ *
  * For more information, please refer to <http://unlicense.org/>
  */
 
@@ -57,7 +57,7 @@ typedef int static_assert_acceptable_dig_size3 [sizeof(uwrd_t)==sizeof(udig_t)*2
 
 #ifdef _MSC_VER
 #pragma warning( disable : 4996 )
-#endif 
+#endif
 
 #ifndef _min
 #define _min(a,b)   (((a)<(b))?(a):(b))
@@ -173,11 +173,11 @@ int vlong::Copy(const vlong &v)
     s  = v.s;
     nu = v.nu;
     memcpy(d, v.d, nu*sizeof(udig_t));
-    return ret; 
+    return ret;
 }
 
 // This function is used ONLY to swap a temporary pointer
-// in case result of a function is the same object as 
+// in case result of a function is the same object as
 // one or more of its arguments.
 //
 // It does NOT transfer the sign and doen't suppose to.
@@ -228,7 +228,7 @@ int vlong::Grow(size_t n)
     //                    shrink if n < 1/4 of that power
 	//                    (unimplemented)
 
-    if (na>=n) 
+    if (na>=n)
     {
         if (nu<na)  memset(d+nu, 0, (na-nu)*sizeof(udig_t));
         return VLONG_SUCCESS;
@@ -236,7 +236,7 @@ int vlong::Grow(size_t n)
 #ifdef VLONG_MAX_DIGITS
     if (n>VLONG_MAX_DIGITS) return VLONG_ERR_MEMORY_EXEED;
 #endif
-    
+
     //At this point guaranteed to be 0<n<VLONG_MAX_DIGITS
     try
     {
@@ -284,7 +284,7 @@ void vlong::SetZero()
 }
 
 // Get least significant digit (unsigned)
-udig_t vlong::GetInt()
+udig_t vlong::GetInt() const
 {
     if (nu==0)
         return 0;
@@ -429,12 +429,13 @@ int vlong::FromStringBuf(const char *pBuf, size_t nBufLen /*=0*/, int nRadix /*=
     }
     else
     {
+		int sign = MP_ZPOS;
         for(i=0; i<(int)len; i++)
         {
             c = pBuf[i];
             if (i==0 && c=='-')
             {
-                s = MP_NEG;
+				sign = MP_NEG;
                 continue;
             }
             if (pAlphabet==MP_DIG_CHARS && rd<=16)
@@ -453,11 +454,9 @@ int vlong::FromStringBuf(const char *pBuf, size_t nBufLen /*=0*/, int nRadix /*=
             }
 
             Mul(*this, rd);
-            if (s == MP_ZPOS)
-                Add(*this, dig);
-            else
-                Sub(*this, dig);
+            Add(*this, dig);
         }
+		s = sign;
     }
     return VLONG_SUCCESS;
 }
@@ -493,7 +492,7 @@ const char *vlong::ToString(int radix /*= 16*/) const
         strcmp(tmp,"");
         return tmp;
     }
-    
+
     return NULL;
 }
 
@@ -541,7 +540,7 @@ int vlong::FromBase64(const char *szNumber)
         ntmp = nNeedBytes+1;
     }
     q = (unsigned char*) tmp;
-    
+
     for(const char *p = szNumber; *p;)
     {
         n[0] = POS(*p++);
@@ -560,7 +559,7 @@ int vlong::FromBase64(const char *szNumber)
 
     dlen = ((char *)q - tmp) - (n[2]==-1 ? 1 : 0) - (n[3]==-1 ? 1 : 0);
     assert(dlen<=nNeedBytes);
-    
+
     CHECK( FromBinary(tmp+1, dlen-1) );
 
     if (tmp[0]==0)
@@ -581,7 +580,7 @@ int vlong::ToBase64Buf(char *pBuf, size_t &nBufLen) const
     char *p;
     int c;
     int ret = VLONG_SUCCESS;
-    
+
     nNeedsBin = ((GetNumBits()+7)/8)+1;
     nNeedsBase64 = ((nNeedsBin << 3) / 6);
 
@@ -632,7 +631,7 @@ int vlong::ToBase64Buf(char *pBuf, size_t &nBufLen) const
         else
             *p++ = base64_enc[c & 0x0000003f];
     }
-    *p = 0; 
+    *p = 0;
 
     delete [] pBinB;
 
@@ -676,7 +675,7 @@ const char *vlong::ToBase64()
 }
 
 // Convert to string of 2<=radix<=16
-// or you can supply a custom character alphabet to convert 
+// or you can supply a custom character alphabet to convert
 // to a custom numeric system (2<=radix<=256)
 int vlong::ToStringBuf(char *pBuf, size_t &nBufLen, int nRadix /*= 16*/, const char *szCustomChars /*=NULL*/) const
 {
@@ -699,7 +698,7 @@ int vlong::ToStringBuf(char *pBuf, size_t &nBufLen, int nRadix /*= 16*/, const c
         if (rd == 0) rd = strlen(szCustomChars);
         if (rd<2 || rd>256) return VLONG_ERR_BAD_ARG_3;
     }
-    
+
     //Calculate size needed to carry the number
     b = BiD;
     if(rd >= 4  ) b>>=1;
@@ -707,7 +706,7 @@ int vlong::ToStringBuf(char *pBuf, size_t &nBufLen, int nRadix /*= 16*/, const c
     if(rd == 256) b>>=1;
 
     nNeeds = nu*b + 2;
-    if (nBufLen < nNeeds) 
+    if (nBufLen < nNeeds)
     {
         nBufLen = nNeeds;
         return VLONG_ERR_BUFFER_SMALL;
@@ -809,7 +808,7 @@ int vlong::Compare(sdig_t x) const
     }
 
     if (x>0)
-    {  
+    {
         // compare the only digit of a to b
         if ((swrd_t)d[0] > x)
             return MP_GT;
@@ -852,18 +851,18 @@ int vlong::CompareMag(const vlong &a, const vlong &b)
     int i;
 
     /* compare based on # of non-zero digits */
-    if (a.nu > b.nu) 
+    if (a.nu > b.nu)
         return MP_GT;
-  
-    if (a.nu < b.nu) 
+
+    if (a.nu < b.nu)
         return MP_LT;
 
     /* compare based on digits  */
     for (i=a.nu-1; i>=0; i--)
     {
-        if (a.d[i] > b.d[i]) 
+        if (a.d[i] > b.d[i])
             return MP_GT;
-        if (a.d[i] < b.d[i]) 
+        if (a.d[i] < b.d[i])
             return MP_LT;
     }
     return MP_EQ;
@@ -878,7 +877,7 @@ size_t vlong::GetNumBits() const
 
     if (isZero()) return 0;
     if (nu>1) bits = BiD*(nu-1);
-    
+
     udig_t dig = d[nu-1];
     while (dig!=0) {dig>>=1;bits++;}
 
@@ -908,7 +907,7 @@ size_t vlong::GetNumLSB() const
     // now scan this digit until a 1 is found
     if ((q & 1) == 0)
     {
-        do 
+        do
         {
             qq  = q & 15;
             i  += lnz[qq];
@@ -954,7 +953,7 @@ int vlong::prvRightShiftDigits(size_t digs)
 
     if (digs==0) return ret;
     if (digs>=nu) {SetZero(); return ret;}
-    
+
     for (i=0; i<nu-digs; i++)
         d[i] = d[i+digs];
 
@@ -983,7 +982,7 @@ int vlong::ShiftRight(const vlong &a, int bits)
     // shift by as many digits in the bit count
     if (bits >= (int)BiD) prvRightShiftDigits (bits / BiD);
     if (nu == 0) return ret;
-  
+
     // shift any bit count < BiD
     b2 = (udig_t) (bits % BiD);
 
@@ -999,7 +998,7 @@ int vlong::ShiftRight(const vlong &a, int bits)
 
             // shift the current word and mix in the carry bits from the previous word
             d[i] = (d[i] >> b2) | (tmp1 << (BiD-b2));
-            
+
             // set the carry to the carry bits of the current word found above
             tmp1 = tmp2;
         }
@@ -1047,7 +1046,7 @@ int vlong::ShiftLeft(const vlong &a, int bits)
         {
             d[nu] = u;
             nu++;
-        }       
+        }
     }
 
     return ret;
@@ -1071,10 +1070,10 @@ int vlong::SetBit(size_t num, char bit)
         else
             return ret;
     }
-    
+
     val = ( (udig_t)bit << pos );
     d[dig] = (d[dig] & (~(val))) | val;
-        
+
     return ret;
 }
 
@@ -1158,13 +1157,13 @@ int vlong::GetBytes(int start, size_t count, char *buf) const
     return ret;
 }
 
-//********************************* Generators *****************************************    
+//********************************* Generators *****************************************
 
 int vlong::GenRandomBytes(size_t bytes, int (*pRNG_f)(void *, char *, size_t) /*= NULL*/, void *pRNG_ctx /*= NULL*/)
 {
     //Pointer to a pseudo-random generator
     int (*pRNG_f2)(void *, char *, size_t);
-    
+
     int ret = VLONG_SUCCESS;
     pRNG_f2 = pRNG_f;
 
@@ -1204,7 +1203,7 @@ int vlong::GenRandomBits(size_t bits, int (*pRNG_f)(void *, char *, size_t) /*= 
     {
         CHECK( GenRandomBytes(bt, pRNG_f, pRNG_ctx) );
     }
-    
+
     if (d2>0 && nu>0)
     {
         d[nu-1] &= (MP_MASK_DIG >> (BiD-((int) d2)));
@@ -1242,11 +1241,11 @@ int vlong::SearchNearestPrime()
     return VLONG_SUCCESS;
 }
 
-// Miller-Rabin test of "a" to the base of "b" as described in 
+// Miller-Rabin test of "a" to the base of "b" as described in
 // HAC pp. 139 Algorithm 4.24
 //
 // Sets result to 0 if definitely composite or 1 if probably prime.
-// Randomly the chance of error is no more than 1/4 and often 
+// Randomly the chance of error is no more than 1/4 and often
 // very much lower.
 //
 int vlong::prvIsMillerRabinPrime(const vlong &a, const vlong &b, bool &bPrime)
@@ -1255,7 +1254,7 @@ int vlong::prvIsMillerRabinPrime(const vlong &a, const vlong &b, bool &bPrime)
     int lsb, j;
     int ret = VLONG_SUCCESS;
 
-    // default 
+    // default
     bPrime = false;
 
     // ensure b > 1
@@ -1292,7 +1291,7 @@ int vlong::prvIsMillerRabinPrime(const vlong &a, const vlong &b, bool &bPrime)
 
             j++;
         }
-        
+
         // if y != n1 then composite
         if (y.Compare(n1) != MP_EQ) return false;
     }
@@ -1369,20 +1368,22 @@ int vlong::Add(const vlong &a, sdig_t b)
     uwrd_t sum;
     udig_t u;
     size_t i;
-    int ret = VLONG_SUCCESS;    
+    int ret = VLONG_SUCCESS;
 
     if (b == 0) return ret;
     if (a.nu == 0) return SetValue(b);
-    
+
     // if signs are different => it is really a substraction
     if ((a.s == MP_NEG && b>0) || (a.s == MP_ZPOS && b<0)) return Sub(a, -b);
 
     if (na < a.nu+1) CHECK( Grow(a.nu+1) );
     if (&a!=this) CHECK( SetValue(a) );
 
+	if (b < 0) b = -b;
+
     // clear msb
     d[nu]=0;
-    
+
     // add digit, after this we're propagating
     // the carry.
     sum = ((uwrd_t) a.d[0]) + ((uwrd_t)b);
@@ -1422,11 +1423,11 @@ int vlong::Sub(const vlong &a, sdig_t b)
     udig_t u;
     udig_t ba;
     size_t i;
-    int ret = VLONG_SUCCESS;    
+    int ret = VLONG_SUCCESS;
 
     if (b == 0) return ret;
     if (a.nu == 0) return SetValue(-b);
-    
+
     // if signs are different => it is really an addition
     if ((a.s == MP_NEG && b>0) || (a.s == MP_ZPOS && b<0)) return Add(a, -b);
 
@@ -1437,7 +1438,7 @@ int vlong::Sub(const vlong &a, sdig_t b)
         ba = (udig_t) -b;
 
     if (na < a.nu) CHECK( Grow(a.nu) );
-    if (&a!=this) CHECK( SetValue(a) ); 
+    if (&a!=this) CHECK( SetValue(a) );
 
     // if a <= b simply fix the single digit
     if (a.nu == 1 && a.d[0] <= ba)
@@ -1485,7 +1486,7 @@ int vlong::Mul(const vlong &a, sdig_t b)
         s = MP_NEG;
     else
         s = MP_ZPOS;
-    
+
     return ret;
 }
 
@@ -1497,7 +1498,7 @@ int vlong::prvMulDig(const vlong &a, udig_t b)
     uwrd_t w;
     size_t i;
     int ret = VLONG_SUCCESS;
-    
+
     if (nu < a.nu+1) CHECK( Grow(a.nu+1) );
     nu = a.nu;
 
@@ -1536,14 +1537,14 @@ int vlong::prvModPow2(const vlong &a, size_t bits)
 
     // if the modulus is larger than the value than return
     if (bits >= (size_t) (a.nu*BiD)) return ret;
-    
+
     // zero digits above the last digit of the modulus
     for (i=((bits+BiD-1)/BiD); i<nu; i++)
         d[i] = 0;
-  
+
     // clear the digit that is not completely outside/inside the modulus
     d[bits/BiD] &= (udig_t) ((((udig_t) 1) << (((udig_t) bits) % BiD)) - ((udig_t) 1));
-    
+
     Clamp();
     return ret;
 }
@@ -1557,13 +1558,13 @@ int vlong::prvDivPow2(const vlong &a, size_t bits, vlong *r)
     {
         CHECK( tmp1.ShiftRight(a, bits) );
         if (r!=NULL) CHECK( r->prvModPow2(a, bits) );
-        Swap(tmp1);
+        swap(tmp1);
     }
     else
     {
         CHECK( ShiftRight(a, bits) );
         if (r!=NULL) CHECK( r->prvModPow2(a, bits) );
-    }       
+    }
     return ret;
 }
 
@@ -1578,7 +1579,7 @@ int vlong::prvIsPow2(udig_t b, size_t *nbits)
     {
         b >>= 1;
         *nbits = *nbits + 1;
-    }   
+    }
     return 1;
 }
 
@@ -1608,7 +1609,7 @@ int vlong::prvDivInt(const vlong &a, udig_t b, vlong *q/*=NULL*/, udig_t *r/*=NU
             CHECK( q->SetValue(a) );
             return ret;
         }
-            
+
         return ret;
     }
 
@@ -1684,21 +1685,21 @@ int vlong::Div(const vlong &a, sdig_t b, sdig_t *r/*=NULL*/)
     s = signq;
 
     Clamp();
-    return ret; 
+    return ret;
 }
 
 int vlong::Mod(const vlong &a, sdig_t b)
 {
-    sdig_t r=0; 
+    sdig_t r=0;
     vlong tmp;
 
     int ret = tmp.Div(a,b,&r);
     if (ret == VLONG_SUCCESS)
         return SetValue(r);
-    
+
     return ret;
 }
-    
+
 sdig_t vlong::ModDig(const vlong &a, sdig_t b) const
 {
     if (b==0) return 0;
@@ -1728,8 +1729,8 @@ int vlong::prvAddMag(const vlong &a, const vlong &b)
 
     if (c->na < nmax+1) CHECK( c->Grow(nmax+1) );
     if (a.nu < b.nu) x = &b;
-    
-    
+
+
     memset(c->d, 0, sizeof(udig_t)*nu);
     c->nu = nmax;
 
@@ -1740,13 +1741,13 @@ int vlong::prvAddMag(const vlong &a, const vlong &b)
         // Compute the sum at one digit, T[i] = A[i] + B[i] + U
         sum = ((uwrd_t) a.d[i]) + ((uwrd_t)b.d[i]) + (uwrd_t)u;
         c->d[i] = (udig_t)(sum & MP_MASK_DIG);
-        
+
         // U = carry bit of T[i]
         u = (udig_t) (sum >> BiD);
     }
 
-    // now copy higher words if any, that is in A+B 
-    // if A or B has more digits add those in 
+    // now copy higher words if any, that is in A+B
+    // if A or B has more digits add those in
     if (nmin != nmax)
     {
         for (i=nmin; i<nmax; i++)
@@ -1832,7 +1833,7 @@ int vlong::Add(const vlong &a, const vlong &b)
         // both positive or both negative
         // add their magnitudes, copy the sign
         s = a.s;
-        
+
         ret = prvAddMag (a, b);
     }
     else
@@ -1897,33 +1898,33 @@ int vlong::Sub(const vlong &a, const vlong &b)
     return ret;
 }
 
-// c = |a| * |b| using Karatsuba Multiplication using 
+// c = |a| * |b| using Karatsuba Multiplication using
 // three half size multiplications
 //
-// Let B represent the radix [e.g. 2**DIGIT_BIT] and 
-// let n represent half of the number of digits in 
+// Let B represent the radix [e.g. 2**DIGIT_BIT] and
+// let n represent half of the number of digits in
 // the min(a,b)
 //
 // a = a1 * B**n + a0
 // b = b1 * B**n + b0
 //
-// Then, a * b => 
+// Then, a * b =>
 // a1b1 * B**2n + ((a1 + a0)(b1 + b0) - (a0b0 + a1b1)) * B + a0b0
 //
-// Note that a1b1 and a0b0 are used twice and only need to be 
-// computed once.  So in total three half size (half # of 
-// digit) multiplications are performed, a0b0, a1b1 and 
+// Note that a1b1 and a0b0 are used twice and only need to be
+// computed once.  So in total three half size (half # of
+// digit) multiplications are performed, a0b0, a1b1 and
 // (a1+b1)(a0+b0)
 //
 // Note that a multiplication of half the digits requires
-// 1/4th the number of single precision multiplications so in 
-// total after one call 25% of the single precision multiplications 
-// are saved.  Note also that the call to mp_mul can end up back 
-// in this function if the a0, a1, b0, or b1 are above the threshold.  
-// This is known as divide-and-conquer and leads to the famous 
-// O(N**lg(3)) or O(N**1.584) work which is asymptopically lower than 
-// the standard O(N**2) that the baseline/comba methods use.  
-// Generally though the overhead of this method doesn't pay off 
+// 1/4th the number of single precision multiplications so in
+// total after one call 25% of the single precision multiplications
+// are saved.  Note also that the call to mp_mul can end up back
+// in this function if the a0, a1, b0, or b1 are above the threshold.
+// This is known as divide-and-conquer and leads to the famous
+// O(N**lg(3)) or O(N**1.584) work which is asymptopically lower than
+// the standard O(N**2) that the baseline/comba methods use.
+// Generally though the overhead of this method doesn't pay off
 // until a certain size (N ~ 80) is reached.
 // based on LibTomMath
 int vlong::prvMulKaratsuba(const vlong &a, const vlong &b)
@@ -1968,8 +1969,8 @@ int vlong::prvMulKaratsuba(const vlong &a, const vlong &b)
 
     memcpy(x1.d, a.d+B, (a.nu-B)*sizeof(udig_t));
     memcpy(y1.d, b.d+B, (b.nu-B)*sizeof(udig_t));
-    
-    // only need to clamp the lower words since by definition the 
+
+    // only need to clamp the lower words since by definition the
     // upper words x1/y1 must have a known number of digits
     CHECK( x0.Clamp() );
     CHECK( y0.Clamp() );
@@ -2002,7 +2003,7 @@ int vlong::prvMulKaratsuba(const vlong &a, const vlong &b)
 }
 
 // multiplies |a| * |b| and only computes upto digs digits of result
-// HAC pp. 595, Algorithm 14.12  Modified so you can control how 
+// HAC pp. 595, Algorithm 14.12  Modified so you can control how
 // many digits of output are created.
 // based on LibTomMath
 int vlong::prvMulBaseline(const vlong &a, const vlong &b, size_t ndigs)
@@ -2018,17 +2019,17 @@ int vlong::prvMulBaseline(const vlong &a, const vlong &b, size_t ndigs)
     memset(d,0,nu*sizeof(udig_t));
 
     // limit ourselves to making digs digits of output
-    size_t nmin = ndigs<b.nu ? ndigs : b.nu; 
-        
+    size_t nmin = ndigs<b.nu ? ndigs : b.nu;
+
     // compute the digits of the product directly
     for (i = 0; i < a.nu; i++)
     {
         // set the carry to zero
         u = 0;
-        
+
         // copy of the digit from a used within the nested loop
         t1 = a.d[i];
-    
+
         // compute the columns of the output and propagate the carry
         for (j = 0; j<nmin; j++)
         {
@@ -2058,7 +2059,7 @@ int vlong::Mul(const vlong &a, const vlong &b, size_t maxdigs /*=0*/)
 {
     char sign = a.s == b.s ? MP_ZPOS : MP_NEG;
     int ret = VLONG_SUCCESS;
-    
+
     if (a.nu==0 || b.nu==0) {SetZero(); return ret;}
     int nmin = a.nu < b.nu ? a.nu : b.nu;
     int nmax = a.nu > b.nu ? a.nu : b.nu;
@@ -2074,7 +2075,7 @@ int vlong::Mul(const vlong &a, const vlong &b, size_t maxdigs /*=0*/)
     size_t digs = a.nu + b.nu;
     if (x->nu < digs) CHECK( x->Grow(digs) );
     if (maxdigs>0 && maxdigs<digs) digs = maxdigs;
-        
+
     // use Karatsuba?
     if (nmin >= VLONG_KARATSUBA_MUL_CUTOFF)
         ret = x->prvMulKaratsuba(a, b);
@@ -2108,18 +2109,18 @@ int vlong::Sqr(const vlong &a)
     return Mul(a, a);
 }
 
-// integer signed division. 
+// integer signed division.
 // c*b + d == a [e.g. a/b, c=quotient, d=remainder]
 // HAC pp.598 Algorithm 14.20
 // based on mp_div() of LibTomMath
 //
-// Note that the description in HAC is horribly 
-// incomplete.  For example, it doesn't consider 
-// the case where digits are removed from 'x' in 
-// the inner loop.  It also doesn't consider the 
+// Note that the description in HAC is horribly
+// incomplete.  For example, it doesn't consider
+// the case where digits are removed from 'x' in
+// the inner loop.  It also doesn't consider the
 // case that y has fewer than three digits, etc..
 //
-// The overall algorithm is as described as 
+// The overall algorithm is as described as
 // 14.20 from HAC but fixed to treat these cases.
 // q <- a/b, r <- a%b
 // based on LibTomMath
@@ -2145,7 +2146,7 @@ int vlong::prvDivBig(const vlong &a, const vlong &b, vlong *q2/*=NULL*/,  vlong 
     if (cmp == MP_EQ)
     {
         if (r!=NULL) r->SetZero();
-        if (q2!=NULL) 
+        if (q2!=NULL)
         {
             q2->SetValue(a);
             q2->s = sign;
@@ -2172,14 +2173,14 @@ int vlong::prvDivBig(const vlong &a, const vlong &b, vlong *q2/*=NULL*/,  vlong 
         CHECK( x.ShiftLeft(x, norm) );
         CHECK( y.ShiftLeft(y, norm) );
     }
-    else 
+    else
         norm = 0;
 
     // note hac does 0 based, so if used==5 then its 0,1,2,3,4, e.g. use 4
     n = x.nu - 1;
     t = y.nu - 1;
 
-    // while (x >= y*b**n-t) do { q[n-t] += 1; x -= y*b**{n-t} } 
+    // while (x >= y*b**n-t) do { q[n-t] += 1; x -= y*b**{n-t} }
     CHECK( y.prvLeftShiftDigits(n-t) );
     while (CompareMag(x,y) != MP_LT)
     {
@@ -2196,7 +2197,7 @@ int vlong::prvDivBig(const vlong &a, const vlong &b, vlong *q2/*=NULL*/,  vlong 
         if (i > (int) x.nu)
             continue;
 
-        // step 3.1 if xi == yt then set q{i-t-1} to b-1, 
+        // step 3.1 if xi == yt then set q{i-t-1} to b-1,
         // otherwise set q{i-t-1} to (xi*b + x{i-1})/yt
         if (x.d[i] == y.d[t])
             q.d[i - t - 1] = MP_MASK_DIG;
@@ -2212,9 +2213,9 @@ int vlong::prvDivBig(const vlong &a, const vlong &b, vlong *q2/*=NULL*/,  vlong 
             q.d[i - t - 1] = (udig_t) (tmpx & MP_MASK_DIG);
         }
 
-        // while (q{i-t-1} * (yt * b + y{t-1})) > 
-        //       xi * b**2 + xi-1 * b + xi-2      
-        // do q{i-t-1} -= 1; 
+        // while (q{i-t-1} * (yt * b + y{t-1})) >
+        //       xi * b**2 + xi-1 * b + xi-2
+        // do q{i-t-1} -= 1;
         q.d[i - t - 1]++;
         do
         {
@@ -2249,15 +2250,15 @@ int vlong::prvDivBig(const vlong &a, const vlong &b, vlong *q2/*=NULL*/,  vlong 
         }
     }
 
-    // now q is the quotient and x is the remainder 
+    // now q is the quotient and x is the remainder
     // [which we have to normalize]
     if (q2!=NULL)
     {
         q.Clamp();
-        q2->Swap(q);
+        q2->swap(q);
         q2->s = sign;
-    }   
-    
+    }
+
     if (r != NULL)
     {
         CHECK( x.ShiftRight(x, norm) );
@@ -2404,12 +2405,12 @@ int vlong::Pow(const vlong &a, size_t e)
 
 // find the n'th root of an integer
 //
-// Result found such that (c)**n <= a and (c+1)**n > a 
+// Result found such that (c)**n <= a and (c+1)**n > a
 //
-// This algorithm uses Newton's approximation 
-// x[i+1] = x[i] - f(x[i])/f'(x[i]) 
-// which will find the root in log(N) time where 
-// each step involves a fair bit.  This is not meant to 
+// This algorithm uses Newton's approximation
+// x[i+1] = x[i] - f(x[i])/f'(x[i])
+// which will find the root in log(N) time where
+// each step involves a fair bit.  This is not meant to
 // find huge roots [square and cube, etc].
 //
 // based on mp_n_root() of LibTomMath
@@ -2445,14 +2446,14 @@ int vlong::Root(const vlong &a, udig_t n)
         // numerator
         // t2 = t1**n
         CHECK( t2.Mul(t1, t3) );
-        
+
         // t2 = t1**n - a
         CHECK( t2.Sub(t2, t5) );
 
         // denominator
         // t3 = t1**(n-1) * n
         CHECK( t3.Mul(t3, n) );
-        
+
         // t3 = (t1**n - a)/(n * t1**(n-1))
         CHECK( t3.Div(t2, t3, &t4) );
 
@@ -2461,16 +2462,16 @@ int vlong::Root(const vlong &a, udig_t n)
     } while (t1.Compare(t2) != MP_EQ);
 
     // result can be off by a few so check
-    for (;;) 
+    for (;;)
     {
         CHECK( t2.Pow(t1, n) );
 
 
-        if (t2.Compare(t5) == MP_GT) 
+        if (t2.Compare(t5) == MP_GT)
         {
             CHECK( t1.Sub(t1, 1) );
         }
-        else 
+        else
             break;
     }
 
@@ -2483,7 +2484,7 @@ int vlong::Root(const vlong &a, udig_t n)
     return ret;
 }
 
-//Computes X such as a*X=1 (mod n). Must hold: gcd(a,n)=1 
+//Computes X such as a*X=1 (mod n). Must hold: gcd(a,n)=1
 //HAC 14.61,14.64
 int vlong::InvMod(const vlong &a, const vlong &n)
 {
@@ -2505,7 +2506,7 @@ int vlong::InvMod(const vlong &a, const vlong &n)
     return ret;
 }
 
-// computes a = 2**b 
+// computes a = 2**b
 //
 // Simple algorithm which zeroes the int, grows it then just sets one bit
 // as required.
@@ -2515,7 +2516,7 @@ int vlong::prv2Expt(udig_t b)
 
     // zero a as per default
     SetZero();
-    
+
     //grow a to accomodate the single bit
     CHECK( Grow((b/BiD)+1) );
 
@@ -2568,7 +2569,7 @@ int vlong::prvMod2d(const vlong &a, int b)
     return ret;
 }
 
-// reduces x mod m, assumes 0 < x < m**2, mu is 
+// reduces x mod m, assumes 0 < x < m**2, mu is
 // precomputed via mp_reduce_setup.
 // From HAC pp.604 Algorithm 14.42
 int vlong::prvReduceBarrett(vlong *x, const vlong &n, const vlong &mu)
@@ -2580,10 +2581,10 @@ int vlong::prvReduceBarrett(vlong *x, const vlong &n, const vlong &mu)
     assert(x->nu < (n.nu*2+1));
 
     // q = x
-    CHECK( q.SetValue(*x) );    
+    CHECK( q.SetValue(*x) );
 
     // q1 = x / b**(k-1)
-    q.prvRightShiftDigits(um - 1);         
+    q.prvRightShiftDigits(um - 1);
 
     // q2 = q1 * mu
     CHECK ( q.Mul(q,mu) );
@@ -2687,7 +2688,7 @@ int vlong::prvReduceMontgomery(vlong *x, const vlong &n, udig_t rho)
 
     digs = n.nu*2+1;
     // grow the input as required
-    
+
     CHECK( x->Grow(digs) );
 
     x->nu = digs;
@@ -2702,7 +2703,7 @@ int vlong::prvReduceMontgomery(vlong *x, const vlong &n, udig_t rho)
         // following inner loop to reduce the
         // input one digit at a time
         mu = (udig_t) (((uwrd_t)x->d[i]) * ((uwrd_t)rho) & MP_MASK_DIG);
-        
+
         // a = a + mu * m * b**i
 
         // set the carry to zero
@@ -2738,7 +2739,7 @@ int vlong::prvReduceMontgomery(vlong *x, const vlong &n, udig_t rho)
     // which means we can shift x to the
     // right by n.used digits and the
     // residue is unchanged.
-    
+
     // x = x/b**n.used
     x->Clamp();
     x->prvRightShiftDigits(n.nu);
@@ -2782,7 +2783,7 @@ int vlong::prvReduceDRSetup(const vlong &n, vlong *mu)
     return ret;
 }
 
-// reduces a modulo n where n is of the form 2**p - d 
+// reduces a modulo n where n is of the form 2**p - d
 // This differs from reduce_2k since "d" can be larger
 // than a single digit.
 // based on mp_reduce_2k_l of LibTomMath
@@ -2797,7 +2798,7 @@ int vlong::prvReduceDR(vlong *x, const vlong &n, const vlong &mu)
     {
         // q = x/2**p, x = x mod 2**p
         CHECK( q.prvDivPow2(*x, p, x) );
-    
+
         // q = q * mu
         CHECK( q.Mul(q, mu) );
 
@@ -2826,12 +2827,12 @@ int vlong::prvReduceDR(vlong *x, const vlong &n, const vlong &mu)
 //X = a^e mod n
 // based on s_mp_exptmod of LibTomMath
 int vlong::prvPowModBarrett(const vlong &a, const vlong &e, const vlong &n, int redmode)
-{   
+{
     vlong M[TAB_SIZE], res, mu;
     udig_t buf;
     int bitbuf, bitcpy, bitcnt, mode, digidx, x, y, winsize;
     int ret = VLONG_SUCCESS;
-    
+
     // use a pointer to the reduction algorithm.  This allows us to use
     // one of many reduction algorithms without modding the guts of
     // the code with if statements everywhere.
@@ -2867,22 +2868,22 @@ int vlong::prvPowModBarrett(const vlong &a, const vlong &e, const vlong &n, int 
     else
     {
         return VLONG_ERR_BAD_ARG_4;
-    }   
+    }
 
     // create M table
     //
-    // The M table contains powers of the base, 
+    // The M table contains powers of the base,
     // e.g. M[x] = G**x mod P
     //
-    // The first half of the table is not 
+    // The first half of the table is not
     // computed though accept for M[0] and M[1]
     //
     CHECK( M[1].Mod(a, n) );
 
-    //compute the value at M[1<<(winsize-1)] by squaring 
-    // M[1] (winsize-1) times 
+    //compute the value at M[1<<(winsize-1)] by squaring
+    // M[1] (winsize-1) times
     CHECK(  M[1 << (winsize - 1)].Copy(M[1]) );
-    
+
     for (x=0; x<(winsize-1); x++)
     {
         // square it
@@ -2967,17 +2968,17 @@ int vlong::prvPowModBarrett(const vlong &a, const vlong &e, const vlong &n, int 
     }
 
     // if bits remain then square/multiply
-    if (mode == 2 && bitcpy > 0) 
+    if (mode == 2 && bitcpy > 0)
     {
         // square then multiply if the bit is set
         for (x=0; x<bitcpy; x++)
         {
             CHECK( res.Mul(res,res) );
             CHECK( redux (&res, n, mu) );
-        
+
             // get next bit of the window
             bitbuf <<= 1;
-            if ((bitbuf & (1 << winsize)) != 0) 
+            if ((bitbuf & (1 << winsize)) != 0)
             {
                 // then multiply
                 CHECK( res.Mul(M[1],res) );
@@ -3030,10 +3031,10 @@ int vlong::prvPowModMontgomery(const vlong &a, const vlong &e, const vlong &n)
     CHECK( M[1].MulMod(a, res, n) );
 
     // compute the value at M[1<<(winsize-1)] by squaring M[1] (winsize-1) times
-    //compute the value at M[1<<(winsize-1)] by squaring 
-    // M[1] (winsize-1) times 
+    //compute the value at M[1<<(winsize-1)] by squaring
+    // M[1] (winsize-1) times
     CHECK(  M[1 << (winsize - 1)].Copy(M[1]) );
-    
+
     for (x=0; x<(winsize-1); x++)
     {
         // square it
@@ -3116,17 +3117,17 @@ int vlong::prvPowModMontgomery(const vlong &a, const vlong &e, const vlong &n)
     }
 
     // if bits remain then square/multiply
-    if (mode == 2 && bitcpy > 0) 
+    if (mode == 2 && bitcpy > 0)
     {
         // square then multiply if the bit is set
         for (x=0; x<bitcpy; x++)
         {
             CHECK( res.Mul(res,res) );
             CHECK( prvReduceMontgomery (&res, n, mp) );
-        
+
             // get next bit of the window
             bitbuf <<= 1;
-            if ((bitbuf & (1 << winsize)) != 0) 
+            if ((bitbuf & (1 << winsize)) != 0)
             {
                 // then multiply
                 CHECK( res.Mul(M[1],res) );
@@ -3141,8 +3142,8 @@ int vlong::prvPowModMontgomery(const vlong &a, const vlong &e, const vlong &n)
     // to reduce one more time to cancel out the factor
     // of R.
     CHECK( prvReduceMontgomery(&res, n, mp) );
-    
-    Swap(res);
+
+    swap(res);
 
     return ret;
 }
@@ -3233,7 +3234,7 @@ int vlong::PowModSlow(const vlong &a, const vlong &e, const vlong &n)
     vlong e1;
 
     CHECK( e1.SetValue(e) );
-    
+
     vlong *c;
     if (&a==this)
         c = &tmp1;
@@ -3246,7 +3247,7 @@ int vlong::PowModSlow(const vlong &a, const vlong &e, const vlong &n)
 
     while (e1.nu>0)
     {
-        if ((e1.d[0] & 1)>0) 
+        if ((e1.d[0] & 1)>0)
         {
             CHECK( c->Mul(*c, sq) );
             CHECK( c->Mod(*c, n ) );
@@ -3313,7 +3314,7 @@ size_t vlong::prvLSB()
 {
     size_t i;
     udig_t q, qq;
-    
+
     if (nu==0) return 0;
 
     // scan lower digits until non-zero
@@ -3347,7 +3348,7 @@ int vlong::GCD (const vlong &a, const vlong &b)
 
     u_lsb = u.prvLSB();
     v_lsb = v.prvLSB();
-    
+
     if (u_lsb < v_lsb)
         k = u_lsb;
     else
@@ -3357,7 +3358,7 @@ int vlong::GCD (const vlong &a, const vlong &b)
     CHECK( v.ShiftRight(v,k) );
 
     u.s = v.s = MP_ZPOS;
-    
+
     while(u.Compare(0) != 0)
     {
         CHECK( u.ShiftRight(u,u.prvLSB()) );
@@ -3406,7 +3407,7 @@ int vlong::LCM (const vlong &a, const vlong &b)
         CHECK( t2.Div(b, t1) );
         CHECK( c->Mul(a, t2) );
     }
-    
+
     // fix the sign to positive
     c->s = MP_ZPOS;
 
@@ -3465,7 +3466,7 @@ int vlong::GCDExt (const vlong &a, const vlong &b, vlong *pY1, vlong *pY2)
         CHECK( r.Sub(y2, r) );
         CHECK( y2.SetValue(y) );
         CHECK( y.SetValue(r) );
-    
+
     }
     if (swap)
     {
@@ -3488,7 +3489,7 @@ int vlong::GCDExtBin (const vlong &a, const vlong &b, vlong *pY1, vlong *pY2)
     int ret = VLONG_SUCCESS;
     int tg=0;;
     vlong ta, tu, u1, u2, tb, tv, v1, v2;
-    
+
     if (a.nu==0 || b.nu==0)
     {
         if (pY1 != NULL) CHECK( pY1->SetValue(1) );
@@ -3565,7 +3566,6 @@ int vlong::GCDExtBin (const vlong &a, const vlong &b, vlong *pY1, vlong *pY2)
     CHECK( SetValue(tv) );
 
     if (tg>0) CHECK( ShiftLeft(*this,tg) );
-    
+
     return ret;
 }
-

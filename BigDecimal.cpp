@@ -41,7 +41,7 @@ static const char *szFormatError = "Numeric Format Error";
 BigDecimal::BigDecimal(int scale)
 	: scale_ (scale)
 {
-	
+
 }
 
 BigDecimal::BigDecimal(const char *szNumber)
@@ -58,8 +58,9 @@ BigDecimal::BigDecimal(double d, int scale)
 
 void BigDecimal::fromString(const char *szNumber)
 {
-	int scale = 0, state = 0, sign = 0;
-	size_t len = strlen(szNumber), pos=0;
+	int scale = 0, state = 0, expSign=1;
+	size_t len = strlen(szNumber), pos = 0;
+	int exp=0;
 	std::string s;
 	s.resize(len + 2);
 	for (size_t i = 0; i < len; i++)
@@ -68,7 +69,8 @@ void BigDecimal::fromString(const char *szNumber)
 		if (state==0 && c == '-')
 		{
 			state = 1;
-			sign = -1;
+			s[pos] = c;
+			pos++;
 			continue;
 		}
 		if (state == 0 && c >= 48 && c <= 57)
@@ -98,11 +100,63 @@ void BigDecimal::fromString(const char *szNumber)
 		}
 
 		// Integral part
-		if (state == 2 && c >= 48 && c <= 57)
+		if (state == 2)
 		{
-			s[pos] = c;
-			pos++;
-			continue;
+			if (c >= 48 && c <= 57)
+			{
+				s[pos] = c;
+				pos++;
+				continue;
+			}
+			if (c == 'e' || c == 'E')
+			{
+				state = 3;
+				continue;
+			}
+			if (c == 'e' || c == 'E')
+			{
+				state = 3;
+				exp = 0;
+				continue;
+			}
+			throw std::logic_error(szFormatError);
+		}
+
+		// Exponent sign
+		if (state == 3)
+		{
+			if (c == '-')
+			{
+				expSign = -1;
+				state = 4;
+				continue;
+			}
+			if (c == '+')
+			{
+				expSign = 1;
+				state = 4;
+				continue;
+			}
+			if (c >= 48 && c <= 57)
+			{
+				exp = exp * 10 + c - 48;
+				state = 4;
+				continue;
+			}
+			throw std::logic_error(szFormatError);
+		}
+
+		// Exponent sign
+		if (state == 4)
+		{
+			if (c >= 48 && c <= 57)
+			{
+				if (exp >= 100000000)
+					throw std::logic_error(szFormatError);
+				exp = exp * 10 + c - 48;
+				state = 4;
+				continue;
+			}
 		}
 
 		// Fracture part
@@ -117,26 +171,54 @@ void BigDecimal::fromString(const char *szNumber)
 	}
 	scale_ = scale <= 0 ? 0 : scale;
 	m_.FromString(s.c_str(), 10);
+	if (exp!=0)
+	{
+		if (expSign<0)
+			scale_ = exp;
+		else
+		{
+			vlong p10(10);
+			p10.Pow(10, exp);
+			vlong m(m_);
+			m_.Mul(m_, p10);
+		}
+	}
+}
+
+void BigDecimal::fromDouble(double d)
+{
+	char str[30];
+	sprintf(str, "%g", d);
+	fromString(str);
 }
 
 void BigDecimal::fromDouble(double d, int scale)
 {
-
+	fromDouble(d);
+	setScale(scale);
 }
 
 std::string BigDecimal::toString() const
 {
 	std::ostringstream oss;
+	int sign = m_.GetSign();
 	const char * str = m_.ToString(10);
+	if (sign < 0) str++;
 	size_t len = strlen(str);
 	int scaleLeft = scale_;
 	bool haveNonZero = false;
+
+	if (len>0 && str[0] == '-')
+	{
+		oss << str[len - 1];
+		len--;
+	}
 
 	while (scaleLeft>0 && len>0)
 	{
 		if (haveNonZero || str[len - 1]!='0')
 		{
-			oss << str[len - 1];			
+			oss << str[len - 1];
 			haveNonZero = true;
 		}
 		scaleLeft--;
@@ -162,6 +244,8 @@ std::string BigDecimal::toString() const
 			len--;
 		}
 	}
+	if (sign < 0)
+		oss << '-';
 	std::string result = oss.str();
 	std::reverse(result.begin(), result.end());
 	return result;
@@ -183,10 +267,11 @@ void BigDecimal::setScale(int scale)
 		p10.Pow(10, scale_ - scale);
 		vlong m(m_);
 		vlong r;
+		int sign = m_.GetSign()>0 ? 1 : -1;
 		m_.Div(m, p10, &r);
-		r.Mul(r, 2);
+		r.Mul(r, 2*sign);
 		if (r >= p10)
-			m_.Add(m_, 1);
+			m_.Add(m_, sign);
 	}
 	scale_ = scale;
 }
@@ -225,7 +310,7 @@ void BigDecimal::add(const BigDecimal &rhs)
 	tmp.setScale(rhs.scale_);
 	tmp.m_.Add(tmp.m_, rhs.m_);
 	tmp.setScale(scale_);
-	m_ = tmp.m_;	
+	m_ = tmp.m_;
 }
 
 void BigDecimal::sub(const BigDecimal &rhs)
@@ -265,6 +350,7 @@ void BigDecimal::div(const BigDecimal &rhs)
 	int scale = scale_;
 	setScale(scale + rhs.scale_);
 	m_.Div(m_, tr.m_, &r);
+	tr.m_.SetSign(1);
 	r.Mul(r, 2);
 	if (r >= tr.m_)
 		m_.Add(m_, 1);

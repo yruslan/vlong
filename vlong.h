@@ -1,10 +1,10 @@
 /* vlong, multiple-precision integer cross-platform C++ Class
  *
- * Supports all essential numeric theory algorithms to implement public key cryptography procedures. 
+ * Supports all essential numeric theory algorithms to implement public key cryptography procedures.
  * Implementation is in plain C++ and thus architecture and endian-portable.
  *
- * Anyone can use it freely for any purpose. There is 
- * absolutely no guarantee it works or fits a particular purpose (see below). 
+ * Anyone can use it freely for any purpose. There is
+ * absolutely no guarantee it works or fits a particular purpose (see below).
  *
  * This class has been made by Ruslan Yushchenko (yruslan@gmail.com)
  *
@@ -21,7 +21,7 @@
  * distribute this software, either in source code form or as a compiled
  * binary, for any purpose, commercial or non-commercial, and by any
  * means.
- * 
+ *
  * In jurisdictions that recognize copyright laws, the author or authors
  * of this software dedicate any and all copyright interest in the
  * software to the public domain. We make this dedication for the benefit
@@ -29,7 +29,7 @@
  * successors. We intend this dedication to be an overt act of
  * relinquishment in perpetuity of all present and future rights to this
  * software under copyright law.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -37,7 +37,7 @@
  * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
- * 
+ *
  * For more information, please refer to <http://unlicense.org/>
  */
 
@@ -88,7 +88,7 @@ typedef unsigned long      uwrd_t;
 #else
     typedef   signed int       sdig_t;
     typedef unsigned int       udig_t;
-    typedef   signed long long swrd_t;  
+    typedef   signed long long swrd_t;
     typedef unsigned long long uwrd_t;
 #endif
 #endif //VLONG_32BIT
@@ -136,21 +136,23 @@ public:
 
 	// Set number equal to zero
     void SetZero();
-	
+
 	// Check if stored number is zero
     bool isZero() const {return nu==0;}
 
 	// Sets value to the absulute value of a given vlong integer
     int Abs(const vlong &v) {int ret=Copy(v);s=nu==0?0:1;return ret;}
 
-    int GetSign() {return s;}
+    int GetSign() const {return s;}
+
+	void SetSign(char sign) { s = sign >= 0 ? 1 : -1; }
 
 	// Gets the number of bytes required to store unsigned vlong integer
 	// (Does not take into account sign bit)
-    int GetSizeBytes() {return nu*sizeof(udig_t);}
-    
+	int GetSizeBytes() const { return nu*sizeof(udig_t); }
+
     // Get least significant digit (unsigned)
-    udig_t GetInt();
+	udig_t GetInt() const;
 
 	// Set value to a single digit integer
     int SetValue(sdig_t v);
@@ -168,7 +170,7 @@ public:
     // or you can supply a custom character alphabet to convert
     // from a custom numeric system (2<=radix<=256)
     int FromStringBuf(const char *pBuf, size_t nBufLen = 0, int nRadix = 16, const char *szCustomChars = NULL);
-    
+
     // Convert from a NUUL-terminated string of 2<=radix<=16
     int FromString(const char *szNumber, int radix = 16);
 
@@ -180,7 +182,7 @@ public:
 
     //****************** Export a number to various formats ********************************
     // Convert to string of 2<=radix<=16
-    // or you can supply a custom character alphabet to convert 
+    // or you can supply a custom character alphabet to convert
     // to a custom numeric system (2<=radix<=256)
     int ToStringBuf(char *pBuf, size_t &nBufLen, int nRadix = 16, const char *szCustomChars = NULL) const;
 
@@ -203,7 +205,7 @@ public:
     int Compare(const vlong &v) const;
 
 	// Compare vlong numbers my magnitude (ignoring sign) [BNM pp.48 Algorithm 3.9]
-	// Results are usual {-1,0,1} for {|a|<|b|, |a|==|b|, |a|>|b|} results.	
+	// Results are usual {-1,0,1} for {|a|<|b|, |a|==|b|, |a|>|b|} results.
 	static int CompareMag(const vlong &a, const vlong &b);
 
     //*************************** Bitwise operations ***************************************
@@ -227,7 +229,7 @@ public:
 
 	// Return value of a specified bit
     char GetBit(size_t num);
-    
+
     //X <- a ^ b  [X refers to caller object]
     int Xor(const vlong &a, const vlong &b);
 
@@ -244,7 +246,7 @@ public:
     //********************************** Primarity *****************************************
     int SearchNearestPrime();
     bool IsPrime();
-    
+
     //************************** Long-Short Arithmetic *************************************
     int Add(const vlong &a, sdig_t b);
     int Sub(const vlong &a, sdig_t b);
@@ -276,7 +278,7 @@ public:
     int ModMontgomery(const vlong &a, const vlong &b);
 
     //X <- a % b (Must hold: 0<a<b*b, half or more digits of b must me 1 bits) [X refers to caller object]
-    int ModDRExt(const vlong &a, const vlong &b);   
+    int ModDRExt(const vlong &a, const vlong &b);
 
     //X <- a ^ e [X refers to caller object]
     int Pow(sdig_t a, sdig_t e);
@@ -347,7 +349,7 @@ public:
     bool operator != (const vlong &x) {return Compare(x)!=0;}
 
     void operator += (sdig_t v) {Add(*this,v);}
-    void operator += (const vlong &v) {Add(*this,v);}   
+    void operator += (const vlong &v) {Add(*this,v);}
     void operator -= (sdig_t v) {Sub(*this,v);}
     void operator -= (const vlong &v) {Sub(*this,v);}
     void operator <<= (int c) {ShiftLeft(*this,c);}
@@ -381,10 +383,10 @@ private:
     int prvMovePtr(vlong &v);
 
     //Tool arithmetic
-	
+
 	//Low-level addition (adds only magnitudes) [BNM pp.55 Algorithm 4.1]
     int prvAddMag(const vlong &a, const vlong &b);
-	
+
 	// Low-level substraction (substract only magnitudes) [BNM pp.60 Algorithm 4.2]
 	// Assumes |a|>=|b|
     int prvSubMag(const vlong &a, const vlong &b);
@@ -435,7 +437,7 @@ private:
     static int prvIsMillerRabinPrime(const vlong &a, const vlong &b, bool &bPrime);
 
     size_t prvLSB();
-    
+
     //Polynomial arithmetic
 
     //The very long number
@@ -446,7 +448,7 @@ private:
 
     //Temporary attributes
     mutable char *tmp;    //For string output
-    mutable size_t ntmp;  //Chars in the tmp string
+	mutable size_t ntmp;  //Chars in the tmp string
 };
 
 namespace std
